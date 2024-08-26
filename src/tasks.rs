@@ -1,10 +1,12 @@
-use chrono::{serde::ts_seconds, DateTime, Local, Utc};
+use chrono::TimeZone;
+use chrono::{serde::ts_seconds_option, serde::ts_seconds, DateTime, Local, NaiveDate, Utc};
+use regex::Regex;
 use serde::Deserialize;
 use serde::Serialize;
-use std::fs::{File, OpenOptions};
-use std::path::PathBuf;
-use std::io::{Result, Error, ErrorKind, Seek, SeekFrom};
 use std::fmt;
+use std::fs::{File, OpenOptions};
+use std::io::{Error, ErrorKind, Result, Seek, SeekFrom};
+use std::path::PathBuf;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Task {
@@ -12,12 +14,33 @@ pub struct Task {
 
     #[serde(with = "ts_seconds")]
     pub created_at: DateTime<Utc>,
+
+    #[serde(with = "ts_seconds_option")]
+    pub due_date: Option<DateTime<Utc>>,
 }
 
 impl Task {
-    pub fn new(text: String) -> Task {
+    pub fn new(text: String, due_date: Option<String>) -> Result<Task> {
         let created_at: DateTime<Utc> = Utc::now();
-        Task { text, created_at }
+        let due_date = match due_date {
+            Some(date_str) => {
+                let re = Regex::new(r"^\d{4}-\d{2}-\d{2}$").unwrap();
+                if re.is_match(&date_str) {
+                    let naive_date = NaiveDate::parse_from_str(&date_str, "%Y-%m-%d")
+                        .map_err(|e| Error::new(ErrorKind::InvalidInput, e.to_string()))?;
+                    let due_date = naive_date.and_hms_opt(0, 0, 0);
+                    Some(Utc.from_utc_datetime(due_date.as_ref().unwrap()))
+                } else {
+                    return Err(Error::new(ErrorKind::InvalidInput, "Invalid date format. Use YYYY-MM-DD format."));
+                }
+            }
+            None => None,
+        };
+        Ok(Task {
+            text,
+            created_at,
+            due_date,
+        })
     }
 }
 
@@ -72,6 +95,9 @@ pub fn list_tasks(journal_path: PathBuf) -> Result<()> {
     // Parse the file and collect the tasks.
     let tasks = collect_tasks(&file)?;
 
+    // Print the headers.
+    println!("{:<5} {:<50} {:<20} {:<20}", "ID", "Task", "Created At", "Due Date");
+
     // Enumerate and display tasks, if any.
     if tasks.is_empty() {
         println!("Task list is empty!");
@@ -89,6 +115,7 @@ pub fn list_tasks(journal_path: PathBuf) -> Result<()> {
 impl fmt::Display for Task {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let created_at = self.created_at.with_timezone(&Local).format("%F %H:%M");
-        write!(f, "{:<50} [{}]", self.text, created_at)
+        let due_date = self.due_date.map_or("".to_string(), |d| d.with_timezone(&Local).format("%F").to_string());
+        write!(f, "{:<50} {:<20} {:<20}", self.text, created_at, due_date)
     }
 }

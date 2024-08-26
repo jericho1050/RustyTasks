@@ -28,7 +28,10 @@ fn main() -> anyhow::Result<()> {
 
     // Perform the action.
     match action {
-        Add { task } => tasks::add_task(journal_file, Task::new(task)),
+        Add { task, due_date } => {
+            let new_task = Task::new(task, due_date)?;
+            tasks::add_task(journal_file, new_task)
+        }
         List => tasks::list_tasks(journal_file),
         Done { position } => tasks::complete_task(journal_file, position),
     }?;

@@ -8,6 +8,10 @@ pub enum Action {
         /// The task description text.
         #[structopt()]
         task: String,
+
+        /// The due date for the task (optional).
+        #[structopt(short, long)]
+        due_date: Option<String>,
     },
     /// Remove an entry from the journal file by position.
     Done {
