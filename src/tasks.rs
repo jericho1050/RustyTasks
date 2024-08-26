@@ -140,7 +140,11 @@ pub fn complete_task(journal_path: PathBuf, task_position: usize) -> Result<()> 
     Ok(())
 }
 
-pub fn list_tasks(journal_path: PathBuf, category: Option<String>, sort_order: String) -> Result<()> {
+pub fn list_tasks(
+    journal_path: PathBuf,
+    category: Option<String>,
+    sort_order: String,
+) -> Result<()> {
     // Open the file.
     let file = OpenOptions::new().read(true).open(journal_path)?;
     // Parse the file and collect the tasks.
@@ -158,8 +162,8 @@ pub fn list_tasks(journal_path: PathBuf, category: Option<String>, sort_order: S
     } else {
         // Print the headers.
         println!(
-            "{:<5} {:<50} {:<20} {:<20} {:<25}",
-            "ID", "Task", "Created At", "Due Date", "Priority"
+            "{:<5} {:<50} {:<20} {:<20} {:<25} {:<25}",
+            "ID", "Task", "Created At", "Due Date", "Priority", "Category"
         );
         let mut order: u32 = 1;
         for task in tasks {
@@ -184,11 +188,12 @@ impl fmt::Display for Task {
         });
         write!(
             f,
-            "{:<50} {:<20} {:^15} {:^25}",
+            "{:<50} {:<20} {:^15} {:^25} {:^25}",
             self.text,
             created_at,
             due_date,
-            self.priority.as_ref().unwrap_or(&"".to_string())
+            self.priority.as_ref().unwrap_or(&"".to_string()),
+            self.category.as_ref().unwrap_or(&"".to_string())
         )
     }
 }
