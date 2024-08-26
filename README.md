@@ -18,10 +18,10 @@ Assuming you've clone this repository
 1. Inside the directory run
 
 ```sh
-cargo build --release
+% cargo build --release
 ```
 
- this will create an executable file that you run with `./`
+ this will create an executable file that you run with `./` inside the `target/release`
 
 or
 
@@ -31,7 +31,7 @@ in development, you run the crate with `cargo run` anyway, which builds and runs
 
 ```sh
 
-rusty-task % ./target/release/rusty-task --help
+RustyTasks % ./target/release/rusty-task --help
 A command line to-do app written in Rust
 
 Usage: rusty-task [OPTIONS] <COMMAND>
@@ -45,7 +45,12 @@ Commands:
 
 Options:
   -j, --journal-file <FILE>  Use a different journal file
-  -h, --help                 Print help
+  -h, --help                 Print he`p
 
 ```
 
+## Unit Test
+
+```sh
+% cargo test
+```
