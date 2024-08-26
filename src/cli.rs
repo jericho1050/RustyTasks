@@ -41,4 +41,10 @@ pub enum Action {
         #[arg(short, long, default_value = "asc")]
         sort_order: String,
     },
+    /// Search for tasks by keyword.
+    Search {
+        /// The keyword to search for.
+        #[arg()]
+        keyword: String,
+    },
 }
